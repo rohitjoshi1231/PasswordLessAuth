@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -18,14 +20,30 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Load local.properties
+        val localProperties = Properties().apply {
+            load(rootProject.file("local.properties").inputStream())
+        }
+
+        // Fetch values
+        val accountSid = localProperties["ACCOUNT_SID"] as String? ?: ""
+        val authToken = localProperties["AUTH_TOKEN"] as String? ?: ""
+        val serviceSid = localProperties["SERVICE_SID"] as String? ?: ""
+
+        // Pass them to BuildConfig
+        buildConfigField("String", "ACCOUNT_SID", "\"$accountSid\"")
+        buildConfigField("String", "AUTH_TOKEN", "\"$authToken\"")
+        buildConfigField("String", "SERVICE_SID", "\"$serviceSid\"")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isCrunchPngs = false
+            isShrinkResources = true
+            isMinifyEnabled = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
     }
@@ -37,6 +55,7 @@ android {
         jvmTarget = "1.8"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -50,10 +69,13 @@ android {
 }
 
 dependencies {
-
-    implementation ("androidx.constraintlayout:constraintlayout-compose:1.1.1")
-
-    implementation("androidx.compose.foundation:foundation:1.7.8")
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.retrofit)
+    implementation(libs.logging.interceptor)
+    implementation(libs.volley)
+    implementation(libs.converter.gson)
+    implementation(libs.androidx.foundation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -62,6 +84,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.runtime.livedata)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
